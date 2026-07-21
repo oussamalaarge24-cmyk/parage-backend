@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+ 
+}
+
+model Lot {
+  id         Int     @id @default(autoincrement())
+  certificat String
+  espece     String?
+  taille     String?
+  createdAt  DateTime @default(now())
+  Production Production[]
+  PoidsCuit  PoidsCuit[]
+}
+
+enum Role {
+  admin
+  chef
+  pesee
+  reception
+  pointage
+  direction
+}
+
+model PoidsCuit {
+  id             Int     @id @default(autoincrement())
+  dateProduction String
+  heure          String?
+  groupe         Int
+  idLot          Int?
+  certificat     String?
+  espece         String?
+  taille         String?
+  numeroChariot  Int?
+  poidsGrille    Float   @default(0)
+  createdAt      DateTime @default(now())
+
+  Lot Lot? @relation(fields: [idLot], references: [id])
+}
+
+model Dechets {
+  id             Int     @id @default(autoincrement())
+  dateProduction String
+  heure          String?
+  groupe         Int
+  numeroBag      Int?
+  poidsTare      Float   @default(0)
+  poidsNet       Float   @default(0)
+  createdAt      DateTime @default(now())
+}
+
+model Operatrice {
+  id        Int     @id @default(autoincrement())
+  nomPrenom String
+  matricule String?
+  num       Int     
+  groupe    Int
+  services  String?
+  createdAt DateTime @default(now())
+
+  Production Production[]
+  Heures     Heures[]
+
+  @@unique([num, groupe])
+}
+
+model Production {
+  id            Int     @id @default(autoincrement())
+  dateSaisie    String
+  dateProduction String
+  heure         String?
+  idOperatrice  Int
+  idLot         Int?
+  poidsFilet    Float   @default(0)
+  nombreCaisse  Int     @default(0)
+  groupe        Int
+  createdAt     DateTime @default(now())
+
+  Operatrice Operatrice @relation(fields: [idOperatrice], references: [id])
+  Lot        Lot?       @relation(fields: [idLot], references: [id])
+}
+
+model Heures {
+  id             Int     @id @default(autoincrement())
+  dateSaisie     String
+  dateProduction String
+  groupe         Int
+  num            Int
+  nomPrenom      String?
+  entree1        String?
+  sortie1        String?
+  entree2        String?
+  sortie2        String?
+  entree3        String?
+  sortie3        String?
+  heures         Float   @default(0)
+  createdAt      DateTime @default(now())
+
+  Operatrice Operatrice? @relation(fields: [num, groupe], references: [num, groupe])
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  nom       String
+  username  String   @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+}
+
+model MoyenFrais {
+  id             Int     @id @default(autoincrement())
+  groupe         Int
+  dateProduction String
+  moyenFrais     Float   @default(0)
+  totalFrais     Float   @default(0)
+  createdAt      DateTime @default(now())
+}
