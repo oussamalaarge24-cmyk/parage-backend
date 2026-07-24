@@ -28,8 +28,9 @@ async function initDB() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       nomPrenom TEXT NOT NULL,
       matricule TEXT,
-      num INTEGER UNIQUE,
+      num TEXT UNIQUE,
       groupe INTEGER,
+      services TEXT,
       idOperatrice INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
@@ -88,7 +89,7 @@ async function initDB() {
       dateSaisie TEXT,
       dateProduction TEXT,
       groupe INTEGER,
-      num INTEGER,
+      num TEXT,
       nomPrenom TEXT,
       entree1 TEXT,
       sortie1 TEXT,
@@ -109,6 +110,65 @@ async function initDB() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  const operatriceInfo = await db.all('PRAGMA table_info(operatrice)');
+  const operatriceNumColumn = operatriceInfo.find(col => col.name === 'num');
+  const operatriceServicesColumn = operatriceInfo.find(col => col.name === 'services');
+  if (operatriceNumColumn && /integer/i.test(operatriceNumColumn.type)) {
+    await db.exec('ALTER TABLE operatrice RENAME TO operatrice_old');
+    await db.exec(`
+      CREATE TABLE operatrice (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nomPrenom TEXT NOT NULL,
+        matricule TEXT,
+        num TEXT UNIQUE,
+        groupe INTEGER,
+        services TEXT,
+        idOperatrice INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await db.exec(`
+      INSERT INTO operatrice (id, nomPrenom, matricule, num, groupe, services, idOperatrice, created_at)
+      SELECT id, nomPrenom, matricule, CAST(num AS TEXT), groupe, NULL, idOperatrice, created_at
+      FROM operatrice_old;
+    `);
+    await db.exec('DROP TABLE operatrice_old');
+  }
+
+  if (!operatriceServicesColumn) {
+    await db.exec('ALTER TABLE operatrice ADD COLUMN services TEXT');
+  }
+
+  const heuresInfo = await db.all('PRAGMA table_info(heures)');
+  const heuresNumColumn = heuresInfo.find(col => col.name === 'num');
+  if (heuresNumColumn && /integer/i.test(heuresNumColumn.type)) {
+    await db.exec('ALTER TABLE heures RENAME TO heures_old');
+    await db.exec(`
+      CREATE TABLE heures (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        dateSaisie TEXT,
+        dateProduction TEXT,
+        groupe INTEGER,
+        num TEXT,
+        nomPrenom TEXT,
+        entree1 TEXT,
+        sortie1 TEXT,
+        entree2 TEXT,
+        sortie2 TEXT,
+        entree3 TEXT,
+        sortie3 TEXT,
+        heures REAL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await db.exec(`
+      INSERT INTO heures (id, dateSaisie, dateProduction, groupe, num, nomPrenom, entree1, sortie1, entree2, sortie2, entree3, sortie3, heures, created_at)
+      SELECT id, dateSaisie, dateProduction, groupe, CAST(num AS TEXT), nomPrenom, entree1, sortie1, entree2, sortie2, entree3, sortie3, heures, created_at
+      FROM heures_old;
+    `);
+    await db.exec('DROP TABLE heures_old');
+  }
 
   // Create indexes for better performance
   await db.exec(`

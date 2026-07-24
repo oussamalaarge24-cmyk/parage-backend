@@ -63,7 +63,7 @@ model Operatrice {
   id        Int     @id @default(autoincrement())
   nomPrenom String
   matricule String?
-  num       Int     
+  num       String
   groupe    Int
   services  String?
   createdAt DateTime @default(now())
@@ -95,7 +95,7 @@ model Heures {
   dateSaisie     String
   dateProduction String
   groupe         Int
-  num            Int
+  num            String
   nomPrenom      String?
   entree1        String?
   sortie1        String?

@@ -194,7 +194,7 @@ app.post('/api/heures/bulk', async (req, res) => {
       for (const rec of records) {
         const { id, Operatrice, ...clean } = rec;
         clean.groupe = parseInt(clean.groupe);
-        clean.num    = parseInt(clean.num);
+        clean.num    = String(clean.num ?? '');
         clean.heures = parseFloat(clean.heures) || 0;
         created.push(await tx.heures.create({ data: clean }));
       }
