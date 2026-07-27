@@ -17,7 +17,7 @@ app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 // Serve the frontend folder as static files
-app.use(express.static(path.join(__dirname, '../frontend')));
+//app.use(express.static(path.join(__dirname, '../frontend')));
 
 // ── Database ───────────────────────────────────────────────────
 const connectionString = process.env.DATABASE_URL;
@@ -274,10 +274,15 @@ app.delete('/api/:table/:id', async (req, res) => {
 });
 
 // Catch-all: serve frontend index.html for unknown routes
-app.get('/{*path}', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+//app.get('/{*path}', (req, res) => {
+  //res.sendFile(path.join(__dirname, '../frontend/index.html'));
+//});
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Parage Backend API is running'
+  });
 });
-
 
 // ── Start ──────────────────────────────────────────────────────
 app.listen(PORT, async () => {
