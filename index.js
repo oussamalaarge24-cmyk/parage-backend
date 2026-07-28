@@ -276,10 +276,24 @@ app.put('/api/:table/:id', async (req, res) => {
 app.delete('/api/:table/:id', async (req, res) => {
   const model = tableToModel[req.params.table];
   if (!model) return res.status(404).json({ error: 'Table not found.' });
+  const id = parseInt(req.params.id);
   try {
-    await prisma[model].delete({ where: { id: parseInt(req.params.id) } });
+    // For operatrice: cascade-delete related Production and Heures first
+    if (req.params.table === 'operatrice') {
+      await prisma.$transaction(async (tx) => {
+        await tx.production.deleteMany({ where: { idOperatrice: id } });
+        const op = await tx.operatrice.findUnique({ where: { id } });
+        if (op) {
+          await tx.heures.deleteMany({ where: { num: op.num, groupe: op.groupe } });
+        }
+        await tx.operatrice.delete({ where: { id } });
+      });
+    } else {
+      await prisma[model].delete({ where: { id } });
+    }
     res.json({ success: true });
   } catch (err) {
+    console.error('Delete error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
