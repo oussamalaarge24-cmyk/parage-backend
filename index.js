@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 //const { PrismaClient } = require('./generated/prisma');
@@ -160,9 +161,16 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Identifiant ou mot de passe incorrect.' });
     }
 
-    // Return user info without password
+    // Generate JWT token (required by frontend's getAuthHeaders)
+    const token = jwt.sign(
+      { id: user.id, nom: user.nom, role: user.role, username: user.username },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: process.env.JWT_EXPIRE || '24h' }
+    );
+
+    // Return user info without password, with token
     const { password: _pw, ...safeUser } = user;
-    res.json({ success: true, user: safeUser });
+    res.json({ success: true, token, user: safeUser });
   } catch (err) {
     console.error('Login error:', err.message);
     res.status(500).json({ error: 'Server error.' });

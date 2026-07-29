@@ -6,12 +6,10 @@
 
 generator client {
   provider = "prisma-client-js"
- 
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Lot {
@@ -70,7 +68,6 @@ model Operatrice {
   createdAt DateTime @default(now())
 
   Production Production[]
-  Heures     Heures[]
 
   @@unique([num, groupe])
 }
@@ -106,8 +103,6 @@ model Heures {
   sortie3        String?
   heures         Float   @default(0)
   createdAt      DateTime @default(now())
-
-  Operatrice Operatrice? @relation(fields: [num, groupe], references: [num, groupe])
 }
 
 model User {
