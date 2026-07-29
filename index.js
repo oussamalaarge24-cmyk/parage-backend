@@ -211,19 +211,38 @@ app.post('/api/heures/bulk', async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields.' });
   }
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      await tx.heures.deleteMany({ where: { dateProduction, groupe: parseInt(groupe) } });
-      const created = [];
-      for (const rec of records) {
-        const { id, Operatrice, ...clean } = rec;
-        clean.groupe = parseInt(clean.groupe);
-        clean.num    = String(clean.num ?? '');
-        clean.heures = parseFloat(clean.heures) || 0;
-        created.push(await tx.heures.create({ data: clean }));
-      }
-      return created;
+    const groupeInt = parseInt(groupe);
+
+    // Step 1: delete existing records for this date+group
+    await prisma.heures.deleteMany({
+      where: { dateProduction, groupe: groupeInt }
     });
-    res.json(result);
+
+    // Step 2: clean and insert new records
+    const cleanRecords = records.map(rec => {
+      const { id, Operatrice, createdAt, ...clean } = rec;
+      return {
+        ...clean,
+        groupe: groupeInt,
+        num:    String(clean.num ?? ''),
+        heures: parseFloat(clean.heures) || 0,
+        entree1: clean.entree1 || null,
+        sortie1: clean.sortie1 || null,
+        entree2: clean.entree2 || null,
+        sortie2: clean.sortie2 || null,
+        entree3: clean.entree3 || null,
+        sortie3: clean.sortie3 || null,
+      };
+    });
+
+    // createMany is supported with driver adapters (no interactive tx needed)
+    await prisma.heures.createMany({ data: cleanRecords });
+
+    // Return the inserted rows so the frontend can update its cache
+    const created = await prisma.heures.findMany({
+      where: { dateProduction, groupe: groupeInt }
+    });
+    res.json(created);
   } catch (err) {
     console.error('Bulk pointage error:', err);
     res.status(500).json({ error: err.message, code: err.code, meta: err.meta });
