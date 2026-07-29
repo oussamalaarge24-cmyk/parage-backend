@@ -13,20 +13,23 @@ const { Pool } = require('pg');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ── Middleware ─────────────────────────────────────────────────
-//app.use(cors({ origin: '*' }));
-
-app.use(cors({
+const corsOptions = {
   origin: [
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:5500',
     'https://parage-frontend.vercel.app'
   ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
-}));
+};
+
+// Handle preflight (OPTIONS) requests for all routes
+app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
 app.use(express.json());
+
 
 // Serve the frontend folder as static files
 //app.use(express.static(path.join(__dirname, '../frontend')));
