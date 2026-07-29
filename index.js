@@ -214,8 +214,8 @@ app.post('/api/heures/bulk', async (req, res) => {
     });
     res.json(result);
   } catch (err) {
-    console.error('Bulk pointage error:', err.message);
-    res.status(500).json({ error: err.message });
+    console.error('Bulk pointage error:', err);
+    res.status(500).json({ error: err.message, code: err.code, meta: err.meta });
   }
 });
 
