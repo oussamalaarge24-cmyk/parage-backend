@@ -249,6 +249,44 @@ app.post('/api/heures/bulk', async (req, res) => {
   }
 });
 
+// Single Operatrice Pointage — save/update only ONE row by num+groupe+date
+app.post('/api/heures/single', async (req, res) => {
+  const { dateProduction, groupe, record } = req.body;
+  if (!dateProduction || groupe === undefined || !record) {
+    return res.status(400).json({ error: 'Missing required fields.' });
+  }
+  try {
+    const groupeInt = parseInt(groupe);
+    const num = String(record.num ?? '');
+
+    // Delete only this operatrice's existing entry for that day
+    await prisma.heures.deleteMany({
+      where: { dateProduction, groupe: groupeInt, num }
+    });
+
+    // Clean and insert the single record
+    const { id, Operatrice, createdAt, ...clean } = record;
+    const data = {
+      ...clean,
+      groupe: groupeInt,
+      num,
+      heures: parseFloat(clean.heures) || 0,
+      entree1: clean.entree1 || null,
+      sortie1: clean.sortie1 || null,
+      entree2: clean.entree2 || null,
+      sortie2: clean.sortie2 || null,
+      entree3: clean.entree3 || null,
+      sortie3: clean.sortie3 || null,
+    };
+
+    const created = await prisma.heures.create({ data });
+    res.json(created);
+  } catch (err) {
+    console.error('Single pointage error:', err);
+    res.status(500).json({ error: err.message, code: err.code, meta: err.meta });
+  }
+});
+
 // GET /api/:table
 app.get('/api/:table', async (req, res) => {
   const model = tableToModel[req.params.table];
