@@ -3,6 +3,8 @@ const cors = require('cors');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const http = require('http');
+const { Server } = require('socket.io');
 require('dotenv').config();
 
 //const { PrismaClient } = require('./generated/prisma');
@@ -12,6 +14,7 @@ const { Pool } = require('pg');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const server = http.createServer(app);
 
 const corsOptions = {
   origin: [
@@ -24,6 +27,8 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 };
+
+const io = new Server(server, { cors: corsOptions });
 
 // Handle preflight (OPTIONS) requests for all routes
 app.options('/{*path}', cors(corsOptions));
@@ -242,6 +247,7 @@ app.post('/api/heures/bulk', async (req, res) => {
     const created = await prisma.heures.findMany({
       where: { dateProduction, groupe: groupeInt }
     });
+    io.emit('db_changed', { table: 'heures' });
     res.json(created);
   } catch (err) {
     console.error('Bulk pointage error:', err);
@@ -280,6 +286,7 @@ app.post('/api/heures/single', async (req, res) => {
     };
 
     const created = await prisma.heures.create({ data });
+    io.emit('db_changed', { table: 'heures' });
     res.json(created);
   } catch (err) {
     console.error('Single pointage error:', err);
@@ -318,6 +325,7 @@ app.post('/api/:table', async (req, res) => {
     }
     const data = await prisma[model].create({ data: body });
     const { password: _pw, ...safe } = data;
+    io.emit('db_changed', { table: req.params.table });
     res.json(req.params.table === 'users' ? safe : data);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -334,6 +342,7 @@ app.put('/api/:table/:id', async (req, res) => {
       body = { ...body, password: await bcrypt.hash(body.password, 10) };
     }
     const data = await prisma[model].update({ where: { id: parseInt(req.params.id) }, data: body });
+    io.emit('db_changed', { table: req.params.table });
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -359,6 +368,7 @@ app.delete('/api/:table/:id', async (req, res) => {
     } else {
       await prisma[model].delete({ where: { id } });
     }
+    io.emit('db_changed', { table: req.params.table });
     res.json({ success: true });
   } catch (err) {
     console.error('Delete error:', err.message);
@@ -378,7 +388,7 @@ app.get('/', (req, res) => {
 });
 
 // ── Start ──────────────────────────────────────────────────────
-app.listen(PORT, async () => {
+server.listen(PORT, async () => {
   console.log(`\n🚀  Server running at  http://localhost:${PORT}`);
   console.log(`    Open your browser at http://localhost:${PORT}\n`);
   await seedIfEmpty();
