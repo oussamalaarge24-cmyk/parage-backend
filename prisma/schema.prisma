@@ -29,6 +29,7 @@ enum Role {
   reception
   pointage
   direction
+  rh
 }
 
 model PoidsCuit {

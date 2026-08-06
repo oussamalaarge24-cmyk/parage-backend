@@ -71,7 +71,8 @@ const usersSeed = [
   { nom: 'Karim (Agent Pesée)',        username: 'pesee',    role: 'pesee'     },
   { nom: 'Naima (Agent Réception)',    username: 'reception',role: 'reception' },
   { nom: 'Said (Agent Pointage)',      username: 'pointage', role: 'pointage'  },
-  { nom: 'Directeur Général',          username: 'direction',role: 'direction' }
+  { nom: 'Directeur Général',          username: 'direction',role: 'direction' },
+  { nom: 'Agent RH',   username: 'rh',   role: 'rh' }
 ];
 
 const operatricesSeed = [
@@ -388,8 +389,15 @@ app.get('/', (req, res) => {
 });
 
 // ── Start ──────────────────────────────────────────────────────
-server.listen(PORT, async () => {
-  console.log(`\n🚀  Server running at  http://localhost:${PORT}`);
-  console.log(`    Open your browser at http://localhost:${PORT}\n`);
-  await seedIfEmpty();
-});
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  server.listen(PORT, async () => {
+    console.log(`\n🚀  Server running at  http://localhost:${PORT}`);
+    console.log(`    Open your browser at http://localhost:${PORT}\n`);
+    await seedIfEmpty();
+  });
+} else {
+  // Call seed on first request or just let it be. Vercel needs the app exported.
+  seedIfEmpty().catch(console.error);
+}
+
+module.exports = app;
