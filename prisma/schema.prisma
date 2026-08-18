@@ -27,9 +27,91 @@ enum Role {
   chef
   pesee
   reception
+  reception_stock
   pointage
   direction
   rh
+  stock
+}
+
+/* ===========================================================
+   STOCK / RÉCEPTIONS / MOUVEMENTS (nouveau module)
+   Tables API: bags, certificats, entree, sortie
+   =========================================================== */
+
+model BagStock {
+  id        Int      @id @default(autoincrement())
+  numBag    String   @unique
+  poidsTare Float    @default(0)
+  dateSaisie String?
+  createdAt DateTime @default(now())
+
+  @@map("bags")
+}
+
+model CertificatStock {
+  id              Int      @id @default(autoincrement())
+  certificat      String
+  numContenaire   String?
+  numCamion       String?
+  poidsReceptionne Float   @default(0)
+  dateSaisie      String?
+  createdAt       DateTime @default(now())
+
+  entrees EntreeStock[]
+
+  @@index([certificat])
+  @@map("certificats")
+}
+
+model EntreeStock {
+  id            Int      @id @default(autoincrement())
+  dateEntree    String
+  heure         String?
+
+  numBag        String
+  poids         Float    @default(0)   // brut
+  poidsTare     Float    @default(0)
+  poidsNet      Float    @default(0)
+
+  taille        String?
+  espece        String?
+
+  // lien optionnel vers la ligne certificat+camion, pour historique / cohérence
+  idCertificat  Int?
+  certificat    String?
+  numContenaire String?
+  numCamion     String?
+
+  createdAt     DateTime @default(now())
+
+  Certificat CertificatStock? @relation(fields: [idCertificat], references: [id], onDelete: SetNull)
+  sorties    SortieStock[]
+
+  @@index([numBag])
+  @@index([certificat])
+  @@map("entree")
+}
+
+model SortieStock {
+  id          Int      @id @default(autoincrement())
+  dateSortie  String
+
+  idEntreeRef Int
+  numBag      String
+  certificat  String?
+  numContenaire String?
+  numCamion   String?
+  taille      String?
+  espece      String?
+
+  createdAt   DateTime @default(now())
+
+  Entree EntreeStock @relation(fields: [idEntreeRef], references: [id], onDelete: Cascade)
+
+  @@index([dateSortie])
+  @@index([numBag])
+  @@map("sortie")
 }
 
 model PoidsCuit {

@@ -59,20 +59,26 @@ const tableToModel = {
   dechets    : 'dechets',
   heures     : 'heures',
   moyenfrais : 'moyenFrais',
-  users      : 'user'
+  users      : 'user',
+  bags       : 'bagStock',
+  certificats: 'certificatStock',
+  entree     : 'entreeStock',
+  sortie     : 'sortieStock'
 };
 
 // ── Seed data ──────────────────────────────────────────────────
 const DEFAULT_PASSWORD = 'Parage2025!';
 
 const usersSeed = [
-  { nom: 'Admin Système',              username: 'admin',    role: 'admin'     },
-  { nom: 'Fatima (Chef Production)',   username: 'chef',     role: 'chef'      },
-  { nom: 'Karim (Agent Pesée)',        username: 'pesee',    role: 'pesee'     },
-  { nom: 'Naima (Agent Réception)',    username: 'reception',role: 'reception' },
-  { nom: 'Said (Agent Pointage)',      username: 'pointage', role: 'pointage'  },
-  { nom: 'Directeur Général',          username: 'direction',role: 'direction' },
-  { nom: 'Agent RH',   username: 'rh',   role: 'rh' }
+  { nom: 'Admin Système',              username: 'admin',           role: 'admin'           },
+  { nom: 'Fatima (Chef Production)',   username: 'chef',            role: 'chef'            },
+  { nom: 'Karim (Agent Pesée)',        username: 'pesee',           role: 'pesee'           },
+  { nom: 'Naima (Agent Réception)',    username: 'reception',       role: 'reception'       },
+  { nom: 'Said (Agent Pointage)',      username: 'pointage',        role: 'pointage'        },
+  { nom: 'Directeur Général',          username: 'direction',       role: 'direction'       },
+  { nom: 'Agent RH',                  username: 'rh',              role: 'rh'              },
+  { nom: 'Agent Réception Stock',     username: 'reception_stock', role: 'reception_stock' },
+  { nom: 'Gestionnaire Stock',        username: 'stock',           role: 'stock'           }
 ];
 
 const operatricesSeed = [
