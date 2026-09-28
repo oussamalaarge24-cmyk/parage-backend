@@ -132,7 +132,8 @@ async function migrateUsersIfNeeded() {
     const hashed = await bcrypt.hash(DEFAULT_PASSWORD, 10);
     const usernameMap = {
       admin: 'admin', chef: 'chef', pesee: 'pesee',
-      reception: 'reception', pointage: 'pointage', direction: 'direction'
+      reception: 'reception', pointage: 'pointage', direction: 'direction', rh: 'rh',
+      reception_stock: 'reception_stock', stock: 'stock'
     };
     const allUsers = await prisma.user.findMany();
     for (const u of allUsers) {
@@ -305,9 +306,24 @@ app.post('/api/heures/single', async (req, res) => {
 app.get('/api/:table', async (req, res) => {
   const model = tableToModel[req.params.table];
   if (!model) return res.status(404).json({ error: 'Table not found.' });
+  
+  const { dateProduction, createdAtGte, createdAtLt, dateSaisie, dateEntree, dateSortie } = req.query;
+  const where = {};
+  
+  if (dateProduction) where.dateProduction = dateProduction;
+  if (dateSaisie) where.dateSaisie = dateSaisie;
+  if (dateEntree) where.dateEntree = dateEntree;
+  if (dateSortie) where.dateSortie = dateSortie;
+  
+  if (createdAtGte || createdAtLt) {
+    where.createdAt = {};
+    if (createdAtGte) where.createdAt.gte = new Date(createdAtGte);
+    if (createdAtLt) where.createdAt.lt = new Date(createdAtLt);
+  }
+
   try {
     // Never return passwords in user list
-    const data = await prisma[model].findMany();
+    const data = await prisma[model].findMany({ where });
     if (req.params.table === 'users') {
       res.json(data.map(({ password: _pw, ...u }) => u));
     } else {
