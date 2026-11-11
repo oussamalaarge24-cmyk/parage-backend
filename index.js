@@ -21,8 +21,8 @@ const corsOptions = {
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:5500',
-    'https://parage-frontend.vercel.app'
-    "https://parage-frontend-hazel.vercel.app",
+    'https://parage-frontend.vercel.app',
+    "https://parage-frontend-hazel.vercel.app"
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
